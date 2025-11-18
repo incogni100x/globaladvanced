@@ -153,11 +153,17 @@ serve(async (req) => {
     // Send email using Resend API
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
-    const FROM_EMAIL = Deno.env.get('VERIFICATION_EMAIL_FROM') || 'Global Premium Fin Verification <verify@globalpremiumfin.com>'
+    
+    // Using verified domain: secure.globalpremiumfin.com
+    const FROM_EMAIL = Deno.env.get('VERIFICATION_EMAIL_FROM') || 'Global Premium Fin Verification <verify@secure.globalpremiumfin.com>'
     const SUBJECT = Deno.env.get('VERIFICATION_EMAIL_SUBJECT') || 'New Identity Verification Submission'
 
     if (!RESEND_API_KEY) {
       throw new Error('RESEND_API_KEY not configured')
+    }
+
+    if (!ADMIN_EMAIL) {
+      throw new Error('ADMIN_EMAIL not configured. Set it in Supabase secrets.')
     }
 
     const resendResponse = await fetch('https://api.resend.com/emails', {

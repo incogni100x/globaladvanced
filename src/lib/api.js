@@ -7,7 +7,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false
+  }
+})
 
 /**
  * Upload a file to Supabase Storage
@@ -48,22 +53,26 @@ export async function uploadFile(bucket, path, file) {
 }
 
 /**
- * Create a verification submission record
+ * Create a verification submission record via Edge Function
+ * Uses Edge Function to bypass RLS (service role has full access)
  * @param {Object} submission - The submission data
  * @returns {Promise<Object>}
  */
 export async function createVerificationSubmission(submission) {
-  const { data, error } = await supabase
-    .from('verification_submissions')
-    .insert([submission])
-    .select()
-    .single()
+  const { data, error } = await supabase.functions.invoke('create-submission', {
+    body: submission
+  })
 
   if (error) {
-    throw new Error(`Database insert failed: ${error.message}`)
+    console.error('Edge Function error:', error)
+    throw new Error(error.message || 'Failed to create submission')
   }
 
-  return data
+  if (data.error) {
+    throw new Error(data.message || data.error || 'Failed to create submission')
+  }
+
+  return data.data || data
 }
 
 /**
