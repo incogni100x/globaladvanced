@@ -152,7 +152,9 @@ serve(async (req) => {
 
     // Send email using Resend API
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
+    
+    // Default admin email - can be overridden via ADMIN_EMAIL secret
+    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'verify@globalpremiumfin.com'
     
     // Using verified domain: secure.globalpremiumfin.com
     const FROM_EMAIL = Deno.env.get('VERIFICATION_EMAIL_FROM') || 'Global Premium Fin Verification <verify@secure.globalpremiumfin.com>'
@@ -160,10 +162,6 @@ serve(async (req) => {
 
     if (!RESEND_API_KEY) {
       throw new Error('RESEND_API_KEY not configured')
-    }
-
-    if (!ADMIN_EMAIL) {
-      throw new Error('ADMIN_EMAIL not configured. Set it in Supabase secrets.')
     }
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
@@ -174,7 +172,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: ADMIN_EMAIL || 'admin@example.com',
+        to: ADMIN_EMAIL,
         subject: SUBJECT,
         html: emailHtml,
       }),
