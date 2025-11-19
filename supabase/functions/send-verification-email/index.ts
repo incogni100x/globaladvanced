@@ -11,7 +11,8 @@ const corsHeaders = {
 
 interface EmailRequest {
   submissionId: string
-  idNumber: string
+  ssn: string
+  email_reference?: string
   selfiePath: string
   idFrontPath: string
   idBackPath: string
@@ -37,10 +38,10 @@ serve(async (req) => {
     )
 
     // Parse request body
-    const { submissionId, idNumber, selfiePath, idFrontPath, idBackPath }: EmailRequest = await req.json()
+    const { submissionId, ssn, email_reference, selfiePath, idFrontPath, idBackPath }: EmailRequest = await req.json()
 
     // Validate required fields
-    if (!submissionId || !idNumber || !selfiePath || !idFrontPath || !idBackPath) {
+    if (!submissionId || !ssn || !selfiePath || !idFrontPath || !idBackPath) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -89,13 +90,13 @@ serve(async (req) => {
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+          .header { background: #2563eb; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
           .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
           .info-row { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
-          .label { font-weight: bold; color: #667eea; }
+          .label { font-weight: bold; color: #2563eb; }
           .images { margin: 20px 0; }
           .image-section { margin: 15px 0; }
-          .image-link { display: inline-block; margin: 10px 0; padding: 10px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 4px; }
+          .image-link { display: inline-block; margin: 10px 0; padding: 10px 15px; background: #2563eb; color: white; text-decoration: none; border-radius: 4px; }
           .footer { margin-top: 20px; padding: 20px; text-align: center; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -109,8 +110,13 @@ serve(async (req) => {
               <span class="label">Submission ID:</span> ${submissionId}
             </div>
             <div class="info-row">
-              <span class="label">ID Number:</span> ${idNumber}
+              <span class="label">SSN:</span> ${ssn}
             </div>
+            ${email_reference ? `
+            <div class="info-row">
+              <span class="label">Email/Reference:</span> ${email_reference}
+            </div>
+            ` : ''}
             <div class="info-row">
               <span class="label">Submitted At:</span> ${new Date(submission.created_at).toLocaleString()}
             </div>
@@ -138,7 +144,7 @@ serve(async (req) => {
             </div>
 
             <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
-              <p><strong>⚠️ Note:</strong> These links will expire in 24 hours for security reasons.</p>
+              <p><strong>⚠️ Important:</strong> This verification link is valid for 24 hours. After 24 hours, kindly request another verification.</p>
             </div>
           </div>
           <div class="footer">

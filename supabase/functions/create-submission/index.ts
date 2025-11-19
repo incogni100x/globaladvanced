@@ -10,7 +10,8 @@ const corsHeaders = {
 }
 
 interface SubmissionRequest {
-  id_number: string
+  ssn: string
+  email_reference?: string
   selfie_path: string
   id_front_path: string
   id_back_path: string
@@ -38,10 +39,10 @@ serve(async (req) => {
     )
 
     // Parse request body
-    const { id_number, selfie_path, id_front_path, id_back_path, status = 'pending', email_sent = false }: SubmissionRequest = await req.json()
+    const { ssn, email_reference, selfie_path, id_front_path, id_back_path, status = 'pending', email_sent = false }: SubmissionRequest = await req.json()
 
     // Validate required fields
-    if (!id_number || !selfie_path || !id_front_path || !id_back_path) {
+    if (!ssn || !selfie_path || !id_front_path || !id_back_path) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -55,7 +56,8 @@ serve(async (req) => {
     const { data, error } = await supabaseClient
       .from('verification_submissions')
       .insert([{
-        id_number,
+        ssn,
+        email_reference: email_reference || null,
         selfie_path,
         id_front_path,
         id_back_path,

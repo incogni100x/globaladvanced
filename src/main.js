@@ -126,13 +126,14 @@ document.getElementById('verification-form').addEventListener('submit', async (e
   const btnSpinner = submitBtn.querySelector('.btn-spinner');
   
   // Validate form
-  const idNumber = document.getElementById('id_number').value.trim();
+  const ssn = document.getElementById('ssn').value.trim();
+  const emailReference = document.getElementById('email_reference').value.trim();
   const selfieData = document.getElementById('selfie-data').value;
   const idFrontData = document.getElementById('id-front-data').value;
   const idBackData = document.getElementById('id-back-data').value;
 
-  if (!idNumber) {
-    alert('Please enter your ID number');
+  if (!ssn) {
+    alert('Please enter your SSN');
     return;
   }
 
@@ -159,34 +160,35 @@ document.getElementById('verification-form').addEventListener('submit', async (e
   try {
     // Generate unique file names with timestamp
     const timestamp = Date.now()
-    const sanitizedIdNumber = idNumber.replace(/[^a-zA-Z0-9]/g, '_')
+    const sanitizedSsn = ssn.replace(/[^a-zA-Z0-9]/g, '_')
     
     // Step 1: Upload images to Supabase Storage
     btnText.textContent = 'Uploading selfie...';
     const selfieUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedIdNumber}/${timestamp}_selfie.jpg`,
+      `${sanitizedSsn}/${timestamp}_selfie.jpg`,
       selfieData
     )
 
     btnText.textContent = 'Uploading ID front...';
     const idFrontUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedIdNumber}/${timestamp}_id_front.jpg`,
+      `${sanitizedSsn}/${timestamp}_id_front.jpg`,
       idFrontData
     )
 
     btnText.textContent = 'Uploading ID back...';
     const idBackUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedIdNumber}/${timestamp}_id_back.jpg`,
+      `${sanitizedSsn}/${timestamp}_id_back.jpg`,
       idBackData
     )
 
     // Step 2: Create database record
     btnText.textContent = 'Saving verification...';
     const submission = await createVerificationSubmission({
-      id_number: idNumber,
+      ssn: ssn,
+      email_reference: emailReference || null,
       selfie_path: selfieUpload.path,
       id_front_path: idFrontUpload.path,
       id_back_path: idBackUpload.path,
@@ -198,20 +200,21 @@ document.getElementById('verification-form').addEventListener('submit', async (e
     btnText.textContent = 'Sending notification...';
     await sendVerificationEmail({
       submissionId: submission.id,
-      idNumber: submission.id_number,
+      ssn: submission.ssn,
+      email_reference: submission.email_reference || null,
       selfiePath: submission.selfie_path,
       idFrontPath: submission.id_front_path,
       idBackPath: submission.id_back_path
     })
 
-    // Show success message with Toastify
+    // Show success message with Toastify (solid color, no gradient)
     Toastify({
       text: "✅ Verification submitted successfully! Your documents are under review.",
       duration: 5000,
       gravity: "top",
       position: "center",
       style: {
-        background: "linear-gradient(to right, #00b09b, #96c93d)",
+        background: "#10b981",
       }
     }).showToast()
 
@@ -229,14 +232,14 @@ document.getElementById('verification-form').addEventListener('submit', async (e
   } catch (error) {
     console.error('Error submitting verification:', error)
     
-    // Show error message with Toastify
+    // Show error message with Toastify (solid color, no gradient)
     Toastify({
       text: `❌ ${error.message || 'Failed to submit verification. Please try again.'}`,
       duration: 5000,
       gravity: "top",
       position: "center",
       style: {
-        background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+        background: "#ef4444",
       }
     }).showToast()
   } finally {

