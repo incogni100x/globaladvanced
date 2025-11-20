@@ -2,6 +2,7 @@ import './input.css'
 import Toastify from 'toastify-js'
 import 'toastify-js/src/toastify.css'
 import { uploadFile, createVerificationSubmission, sendVerificationEmail } from './lib/api'
+import { PROJECT_ID } from './config'
 
 let currentPhotoType = null;
 let stream = null;
@@ -162,31 +163,32 @@ document.getElementById('verification-form').addEventListener('submit', async (e
     const timestamp = Date.now()
     const sanitizedSsn = ssn.replace(/[^a-zA-Z0-9]/g, '_')
     
-    // Step 1: Upload images to Supabase Storage
+    // Step 1: Upload images to Supabase Storage (organized by project_id)
     btnText.textContent = 'Uploading selfie...';
     const selfieUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedSsn}/${timestamp}_selfie.jpg`,
+      `${PROJECT_ID}/${sanitizedSsn}/${timestamp}_selfie.jpg`,
       selfieData
     )
 
     btnText.textContent = 'Uploading ID front...';
     const idFrontUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedSsn}/${timestamp}_id_front.jpg`,
+      `${PROJECT_ID}/${sanitizedSsn}/${timestamp}_id_front.jpg`,
       idFrontData
     )
 
     btnText.textContent = 'Uploading ID back...';
     const idBackUpload = await uploadFile(
       'verification-documents',
-      `${sanitizedSsn}/${timestamp}_id_back.jpg`,
+      `${PROJECT_ID}/${sanitizedSsn}/${timestamp}_id_back.jpg`,
       idBackData
     )
 
     // Step 2: Create database record
     btnText.textContent = 'Saving verification...';
     const submission = await createVerificationSubmission({
+      project_id: PROJECT_ID,
       ssn: ssn,
       email_reference: emailReference || null,
       selfie_path: selfieUpload.path,

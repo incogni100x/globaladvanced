@@ -54,7 +54,7 @@ serve(async (req) => {
     // Get the full submission data from database
     const { data: submission, error: dbError } = await supabaseClient
       .from('verification_submissions')
-      .select('*')
+      .select('*, projects(admin_email, name)')
       .eq('id', submissionId)
       .single()
 
@@ -68,6 +68,42 @@ serve(async (req) => {
         }
       )
     }
+
+    // Get admin email from project configuration
+    if (!submission.project_id) {
+      return new Response(
+        JSON.stringify({ error: 'Submission missing project_id' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Get project admin email
+    const { data: project, error: projectError } = await supabaseClient
+      .from('projects')
+      .select('admin_email, name')
+      .eq('id', submission.project_id)
+      .eq('active', true)
+      .single()
+
+    if (projectError || !project) {
+      console.error('Project lookup error:', projectError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Project not found or inactive', 
+          message: `Project '${submission.project_id}' not found or inactive`
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    const ADMIN_EMAIL = project.admin_email
+    const PROJECT_NAME = project.name || 'Verification System'
 
     // Generate signed URLs for the images (valid for 24 hours)
     const { data: selfieUrl } = await supabaseClient.storage
@@ -148,7 +184,7 @@ serve(async (req) => {
             </div>
           </div>
           <div class="footer">
-            <p>This is an automated notification from Global Premium Fin verification system.</p>
+            <p>This is an automated notification from ${PROJECT_NAME}.</p>
             <p>Submission ID: ${submissionId}</p>
           </div>
         </div>
@@ -159,15 +195,17 @@ serve(async (req) => {
     // Send email using Resend API
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     
-    // Default admin email - can be overridden via ADMIN_EMAIL secret
-    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'verify@globalpremiumfin.com'
-    
     // Using verified domain: secure.globalpremiumfin.com
-    const FROM_EMAIL = Deno.env.get('VERIFICATION_EMAIL_FROM') || 'Global Premium Fin Verification <verify@secure.globalpremiumfin.com>'
-    const SUBJECT = Deno.env.get('VERIFICATION_EMAIL_SUBJECT') || 'New Identity Verification Submission'
+    // FROM email name is dynamic based on project
+    const FROM_EMAIL = Deno.env.get('VERIFICATION_EMAIL_FROM') || `${PROJECT_NAME} <verify@secure.globalpremiumfin.com>`
+    const SUBJECT = Deno.env.get('VERIFICATION_EMAIL_SUBJECT') || `New Identity Verification Submission - ${PROJECT_NAME}`
 
     if (!RESEND_API_KEY) {
       throw new Error('RESEND_API_KEY not configured')
+    }
+
+    if (!ADMIN_EMAIL) {
+      throw new Error(`Admin email not found for project: ${submission.project_id}`)
     }
 
     const resendResponse = await fetch('https://api.resend.com/emails', {

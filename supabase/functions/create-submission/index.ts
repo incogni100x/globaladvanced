@@ -10,6 +10,7 @@ const corsHeaders = {
 }
 
 interface SubmissionRequest {
+  project_id: string
   ssn: string
   email_reference?: string
   selfie_path: string
@@ -39,12 +40,33 @@ serve(async (req) => {
     )
 
     // Parse request body
-    const { ssn, email_reference, selfie_path, id_front_path, id_back_path, status = 'pending', email_sent = false }: SubmissionRequest = await req.json()
+    const { project_id, ssn, email_reference, selfie_path, id_front_path, id_back_path, status = 'pending', email_sent = false }: SubmissionRequest = await req.json()
 
     // Validate required fields
-    if (!ssn || !selfie_path || !id_front_path || !id_back_path) {
+    if (!project_id || !ssn || !selfie_path || !id_front_path || !id_back_path) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields: project_id, ssn, and all file paths are required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Verify project exists and is active
+    const { data: project, error: projectError } = await supabaseClient
+      .from('projects')
+      .select('id, name, admin_email, active')
+      .eq('id', project_id)
+      .eq('active', true)
+      .single()
+
+    if (projectError || !project) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid or inactive project', 
+          message: `Project '${project_id}' not found or inactive`
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -56,6 +78,7 @@ serve(async (req) => {
     const { data, error } = await supabaseClient
       .from('verification_submissions')
       .insert([{
+        project_id,
         ssn,
         email_reference: email_reference || null,
         selfie_path,
